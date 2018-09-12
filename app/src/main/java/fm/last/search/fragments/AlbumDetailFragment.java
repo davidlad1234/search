@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,15 +18,15 @@ import fm.last.david.searchlastfm.R;
 import fm.last.search.activities.AlbumActivity;
 import fm.last.search.activities.AlbumDetailActivity;
 import fm.last.search.activities.AlbumListActivity;
-import fm.last.search.pojos.info.Album;
 import fm.last.search.pojos.Image;
+import fm.last.search.pojos.info.Album;
 import fm.last.search.pojos.info.InfoResponseModel;
 import fm.last.search.remote.FMDataService;
 import fm.last.search.remote.RetrofitClient;
 import fm.last.search.utils.FMViewUtils;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.observers.DisposableSingleObserver;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Retrofit;
 
 /**
@@ -77,6 +76,7 @@ public class AlbumDetailFragment extends Fragment {
 
     @BindView(R.id.tracks)
     TextView tracksView;
+    private DisposableSingleObserver<InfoResponseModel> disposableSingleObserver;
 
 
     /**
@@ -131,31 +131,34 @@ public class AlbumDetailFragment extends Fragment {
     private void fetchAlbumInfo() {
         Retrofit retroClient = RetrofitClient.getRetrofitInstance();
         FMDataService dataService = retroClient.create(FMDataService.class);
-        Call<InfoResponseModel> call = dataService.getAlbumInfo(albumArtist, albumName);
-        call.enqueue(new Callback<InfoResponseModel>() {
-            @Override
-            public void onResponse(Call<InfoResponseModel> call, Response<InfoResponseModel> response) {
-                if (response.isSuccessful()) {
-                    InfoResponseModel model = response.body();
-                    if (model != null) {
-                        Album album = model.getAlbum();
-                        if (album != null) {
-                            writeScreen(album);
-                        } else {
-                            Log.d(TAG, "Error getting album..");
-                        }
-                    } else {
-                        Log.d(TAG, "Error getting response");
-                    }
-                }
-            }
+        disposableSingleObserver = dataService.getAlbumInfo(albumArtist, albumName).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableSingleObserver<InfoResponseModel>() {
+                    @Override
+                    public void onSuccess(InfoResponseModel response) {
+                        if (response != null) {
+                            Album album = response.getAlbum();
+                            if (album != null) {
+                                writeScreen(album);
+                            } else {
+                                Log.d(TAG, "Error getting album..");
+                            }
 
-            @Override
-            public void onFailure(Call<InfoResponseModel> call, Throwable t) {
-                Log.d(ALBUM_DETAIL_FRAGMENT, "Error: " + t.getMessage());
-                Toast.makeText(getContext(), getString(R.string.data_error), Toast.LENGTH_LONG).show();
-            }
-        });
+
+                        } else {
+                            Log.d(TAG, "Error getting response ");
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(ALBUM_DETAIL_FRAGMENT, "Error: " + e.getMessage());
+                        Toast.makeText(getContext(), getString(R.string.data_error), Toast.LENGTH_LONG).show();
+
+                    }
+
+                });
+
     }
 
     /**
@@ -166,7 +169,7 @@ public class AlbumDetailFragment extends Fragment {
     private void writeScreen(Album albumInfo) {
 
         FMViewUtils.formatString(albumInfo.getTracks(), tracksView);
-        if(albumInfo.getWiki()!=null) {
+        if (albumInfo.getWiki() != null) {
             Spanned spanner = Html.fromHtml(albumInfo.getWiki().getSummary());
             wikiView.setText(spanner);
         }
@@ -182,7 +185,14 @@ public class AlbumDetailFragment extends Fragment {
         urlView.setText(Html.fromHtml(albumInfo.getUrl()));
 
 
+    }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (disposableSingleObserver != null && !disposableSingleObserver.isDisposed()) {
+            disposableSingleObserver.dispose();
+        }
     }
 
 

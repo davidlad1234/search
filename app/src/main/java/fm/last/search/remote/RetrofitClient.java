@@ -4,9 +4,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
 public class RetrofitClient {
-    private static Retrofit retrofit;
+    private static Retrofit retrofit = null;
     private static final String BASE_URL = "http://ws.audioscrobbler.com/";
 
     public static Retrofit getRetrofitInstance() {
@@ -18,11 +19,13 @@ public class RetrofitClient {
 // add your other interceptors …
 // add logging as last interceptor
             httpClient.addInterceptor(logging);  //
-            retrofit = new retrofit2.Retrofit.Builder()
-                    .baseUrl(BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .client(httpClient.build())
-                    .build();
+            Retrofit.Builder builder = new Retrofit.Builder();
+            builder.baseUrl(BASE_URL);
+            builder.addConverterFactory(GsonConverterFactory.create());
+            builder.client(httpClient.build());
+            builder.addCallAdapterFactory(RxJava2CallAdapterFactory.create());
+
+           retrofit = builder.build();
         }
         return retrofit;
     }

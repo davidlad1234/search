@@ -32,6 +32,13 @@ import fm.last.search.remote.RetrofitClient;
 import fm.last.search.pojos.search.Album;
 import fm.last.search.pojos.search.AlbumMatches;
 import fm.last.search.pojos.Image;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.SingleObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.observers.DisposableSingleObserver;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -68,6 +75,7 @@ public class AlbumListActivity extends AlbumActivity {
     @Nullable
     CollapsingToolbarLayout appBarLayout;
     private Album[] albums;
+    private DisposableSingleObserver<SearchResponseModel> disposableSingleObserver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,37 +118,46 @@ public class AlbumListActivity extends AlbumActivity {
     private void captureAlbums() {
         Retrofit retroClient = RetrofitClient.getRetrofitInstance();
         FMDataService dataService = retroClient.create(FMDataService.class);
-        Call<SearchResponseModel> call = dataService.getAlbum("believe");
-        call.enqueue(new Callback<SearchResponseModel>() {
-            @Override
-            public void onResponse(Call<SearchResponseModel> call, Response<SearchResponseModel> response) {
-                if (response.isSuccessful()) {
-                    SearchResponseModel model = response.body();
-                    if(model !=null) {
-                        Results res = model.getResults();
-                        Log.d(TAG, "Received from server: " + res);
-                        AlbumMatches matches = res.getAlbumMatches();
-                        if (matches != null) {
-                            albums = matches.getAlbum();
-                            recyclerView.setAdapter(new SimpleAlbumRecyclerViewAdapter(AlbumListActivity.this, albums, isTwoPane));
+
+        disposableSingleObserver = dataService.getAlbum("believe").subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableSingleObserver<SearchResponseModel>() {
+
+
+                    @Override
+                    public void onSuccess(SearchResponseModel response) {
+                        if (response != null) {
+
+                            Results res = response.getResults();
+                            Log.d(TAG, "Received from server: " + res);
+                            AlbumMatches matches = res.getAlbumMatches();
+                            if (matches != null) {
+                                albums = matches.getAlbum();
+                                recyclerView.setAdapter(new SimpleAlbumRecyclerViewAdapter(AlbumListActivity.this, albums, isTwoPane));
+                            } else {
+                                Log.d(TAG, "Null match received from server..");
+                            }
+
                         } else {
-                            Log.d(TAG, "Null match received from server..");
+                            Log.d(TAG, "Error getting response ");
                         }
                     }
-                    else{
-                        Log.d(TAG, "Null model received from server..");
-                    }
-                }
-            }
 
-            @Override
-            public void onFailure(Call<SearchResponseModel> call, Throwable t) {
-                Log.d(TAG, "Error: " + t.getMessage());
-                Toast.makeText(AlbumListActivity.this, getString(R.string.data_error), Toast.LENGTH_LONG).show();
-            }
-        });
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(TAG, "Error: " + e.getMessage());
+                        Toast.makeText(AlbumListActivity.this, getString(R.string.data_error), Toast.LENGTH_LONG).show();
+                    }
+                });
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (disposableSingleObserver != null && !disposableSingleObserver.isDisposed()) {
+            disposableSingleObserver.dispose();
+        }
+    }
 
     public void setAppBarTitle(String artist) {
         if (appBarLayout != null) {
@@ -190,7 +207,6 @@ public class AlbumListActivity extends AlbumActivity {
             holder.streamView.setTag(position);
 
 
-
         }
 
         private void fetchImage(ImageView imageView, Album album) {
@@ -198,11 +214,10 @@ public class AlbumListActivity extends AlbumActivity {
                 Image image = album.getImage()[0];
                 if (image != null) {
                     String url = image.getText();
-                    FMViewUtils.loadImage(AlbumListActivity.this,imageView, url);
+                    FMViewUtils.loadImage(AlbumListActivity.this, imageView, url);
                 }
-            }
-            else{
-                Log.d(TAG,"Album is null...");
+            } else {
+                Log.d(TAG, "Album is null...");
             }
         }
 
@@ -230,7 +245,7 @@ public class AlbumListActivity extends AlbumActivity {
                 ButterKnife.bind(this, view);
             }
 
-            @OnClick({R.id.id_image, R.id.artist, R.id.album,R.id.streamable})
+            @OnClick({R.id.id_image, R.id.artist, R.id.album, R.id.streamable})
             public void onClickViews(View view) {
                 int position = (int) view.getTag();
                 Album album = albums[position];
