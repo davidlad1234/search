@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">searchLastFm</string>
+    <string name="title_album_detail">Album Detail</string>
+    <string name="data_error">Error fetching data from fm...</string>
+    <string name="tracks">Tracks</string>
+    <string name="summary">Summary</string>
+    <string name="link">Link</string>
+    <string name="artist">Artist</string>
+    <string name="album">Album</string>
+</resources>

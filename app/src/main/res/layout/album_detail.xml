@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+
+        android:id="@+id/album_detail"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context="fm.last.search.fragments.AlbumDetailFragment">
+
+        <ImageView
+            android:id="@+id/id_image"
+
+            android:layout_width="@dimen/image_size_large"
+            android:layout_height="@dimen/image_size_large"
+            android:layout_gravity="center_horizontal"
+            android:padding="@dimen/text_margin" />
+
+
+
+        <TextView
+            android:id="@+id/album_name"
+            style="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/text_margin"
+            android:text="@string/album"
+            android:textStyle="bold"
+            android:textIsSelectable="true" />
+        <TextView
+            android:id="@+id/album"
+            style="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/text_margin"
+            android:textIsSelectable="true" />
+
+
+        <TextView
+            android:id="@+id/artist_name"
+            style="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/text_margin"
+            android:text="@string/artist"
+            android:textStyle="bold"
+            android:textIsSelectable="true" />
+
+        <TextView
+            android:id="@+id/artist"
+
+            style="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/text_margin"
+            android:textIsSelectable="true" />
+
+
+        <TextView
+            android:id="@+id/url_name"
+            style="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/text_margin"
+            android:text="@string/link"
+            android:textStyle="bold"
+            android:textIsSelectable="true" />
+
+        <TextView
+            android:id="@+id/url"
+
+            style="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/text_margin"
+            android:textIsSelectable="true" />
+
+
+        <TextView
+            android:id="@+id/summary_name"
+            style="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/text_margin"
+            android:text="@string/summary"
+            android:textStyle="bold"
+            android:textIsSelectable="true" />
+
+        <TextView
+            android:id="@+id/wiki"
+
+            style="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/text_margin"
+            android:textIsSelectable="true" />
+
+        <TextView
+            android:id="@+id/tracks_name"
+            style="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/text_margin"
+            android:text="@string/tracks"
+            android:textStyle="bold"
+            android:textIsSelectable="true" />
+
+        <TextView
+
+            android:id="@+id/tracks"
+            style="?android:attr/textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/text_margin"
+            android:textIsSelectable="true" />
+
+
+    </LinearLayout>
+</ScrollView>
